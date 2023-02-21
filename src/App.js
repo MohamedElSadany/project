@@ -70,7 +70,7 @@ export const App = () => {
   const [formError,setFormError]=useState({});
   const validateForm = () => {
     let err={};
-    if(title.length >7  ){
+    if(title.length > 20  ){
       err.title = "title is unique"
       alert("title unique")
     }
