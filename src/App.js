@@ -58,7 +58,7 @@ export const App = () => {
         setitems([...items,item]);
         setTitle('');
         setPrice('');
-        alert('submitted');
+        alert('added');
        }else{
         alert('in vaild form')
        }
