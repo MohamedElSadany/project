@@ -1,72 +1,81 @@
-import React,{useState, useEffect} from 'react'
-import { View } from './components/View';
+import React, { useState, useEffect } from 'react'
+import List from './List'
+import Alert from './Alert'
 
-// getting the values of local storage
-const getDatafromLS=()=>{
-  const data = localStorage.getItem('items');
-  if(data){
-    return JSON.parse(data);
+const getLocalStorage = () => {
+  let list = localStorage.getItem('list');
+  if (list) {
+    return (list = JSON.parse(localStorage.getItem('list')));
+  } else {
+    return [];
   }
-  else{
-    return []
-  }
-}
+};
 
-export const App = () => {
-
-  // main array of objects state || items state || items array of objects
-  const [items, setitems]=useState(getDatafromLS());
-
-  // input field states
-  const [title, setTitle]=useState('');
-  const [price, setPrice]=useState('');
-
-  const [toggleSubmit,setToggleSubmit]=useState(true);
-  const [isEditItem,setIsEditItem]=useState(null);
-
+function App() {
+  const [title,setTitle] = useState('');
+  const [price,setPrice] = useState('');
+  const [list,setList] =useState(getLocalStorage());
+  const [isEditing,setIsEditing]=useState(false);
+  const [editID,setEditID] = useState(null);
+  const [alert,setAlert] = useState({show: false , msg:'' , type:''});
   
-  // form submit event
-  const handleAddItemSubmit=(e)=>{
-    if(!(title&&price)){
-      alert("plz fill Data");
-    }else if(!(title&&price) && !toggleSubmit){
-        setitems(
-          items.map((elem) =>{
-            if (elem.id ===isEditItem){
-              return{...elem,title:title,price:price}
-            }
-            return elem;
-          })
-           
-        )
-          setToggleSubmit(true);
-          setTitle('');
-          setPrice('');
-          setIsEditItem(null);
-    }else{
-      e.preventDefault();
-      // creating an object
-      const item={
-        id:new Date().getTime().toString(),
-        title,
-        price
-        
-      }
-      
-      let isVaild = validateForm()
-       if(isVaild){
-        setitems([...items,item]);
-        setTitle('');
-        setPrice('');
-        alert('added');
-       }else{
-        alert('in vaild form')
-       }
-      
+  const handleSubmmit = (e) => {
+    e.preventDefault();
+    if (!(title && price)){
+      // display alert
+      showAlert(true,'danger','please enter value');
     }
+    else if((title && price) && isEditing){
+      setList(list.map((item)=>{
+        if (item.id === editID){
+          return {...item,itemTitle:title,itemPrice:price}
+        }
+        return item
+      }))
+      setTitle('');
+      setPrice('');
+      setEditID(null);
+      setIsEditing(false);
+      showAlert(true,'success','Item Edited');
+    }
+    else {
+      showAlert(true,'success','item added to the list');
+      const newItem = {id:new Date().getTime().toString(),itemTitle:title,itemPrice:price};
+      setList([...list,newItem]);
+      setTitle('');
+      setPrice('');
+    }
+  }
+
+  const showAlert = (show=false,type="",msg="") => {
+    setAlert({show,type,msg});
+  }
+
+  const clearList =() => {
+    showAlert (true,'danger' , 'empty list');
+    setList([]);
+  }
+
+  const removeItem = (id) => {
+    showAlert(true,'danger','item removed');
+    setList(list.filter((item)=> item.id !== id));
     
   }
+
+  const editItem = (id) => {
+    const specificItem = list.find((item) => item.id === id);
+    setIsEditing(true);
+    setEditID(id);
+    setTitle(specificItem.itemTitle);
+    setPrice(specificItem.itemPrice);
+  }
+
+  useEffect(() => {
+    localStorage.setItem('list', JSON.stringify(list));
+  }, [list]);
+
   // valdation error
+  /*
   const [formError,setFormError]=useState({});
   const validateForm = () => {
     let err={};
@@ -78,92 +87,42 @@ export const App = () => {
     
     return Object.keys(err).length < 1;
   }
-
-  // delete item from LS
-  const deleteItem=(id)=>{
-    const filteredItems=items.filter((element,index)=>{
-      return element.id !== id
-    })
-    setitems(filteredItems);
-  }
-
-   
-  // update item from LS
-  const updateItem=(id)=>{
-    const newUpdateEtiem=items.find((element)=>{
-      return element.id === id
-    })
-    setToggleSubmit(false);
-    setTitle(newUpdateEtiem.title);
-    setPrice(newUpdateEtiem.price);
-    setIsEditItem(id);
-    
-  } 
-
-  // saving data to local storage
-  useEffect(()=>{
-    localStorage.setItem('items',JSON.stringify(items));
-  },[items])
-
+  */
   return (
-    <div className='wrapper'>
-      <h1>Items</h1>
-      <p>Add Items</p>
-      <div className='main'>
-
-        <div className='form-container'>
-          <form autoComplete="off" className='form-group'
-          onSubmit={handleAddItemSubmit}>
-            <label htmlFor='title'>Title</label>
-            <input type="text" id='title' className='form-control'  minLength= "3" required="required"
-            onChange={(e)=>setTitle(e.target.value)} value={title} label="Outlined" variant="outlined" />
-            <br></br>
-            <label htmlFor='price'>Price</label>
-            <input type="number" id='price' className='form-control' required="required"
-            onChange={(e)=>setPrice(e.target.value)} value={price} />
-            <br></br>
-            {
-            toggleSubmit ?
-            <button type="submit" className='btn btn-success btn-md'>
-              ADD
-            </button> :
-
-            <button type="submit" className='btn btn-success btn-md'>
-              update
-            </button>
-
-            }
+    <section className="section-center">
+      <form className='grocery-center' onSubmit={handleSubmmit}>
+        {alert.show && <Alert {...alert} removeAlert={showAlert} list={list}/>}
+        <h3>add item</h3>
+        <input
+            type="text" 
+            className='grocery' 
+            placeholder='title'
+            required='required'
+            minLength='3' 
+            value={title}
+            onChange={(e)=>setTitle(e.target.value)}/>
             
-          </form>
+        <input 
+            type="number" 
+            className='grocery' 
+            placeholder='price'
+            required='required'
+            value={price}
+            onChange={(e)=>setPrice(e.target.value)} />
+        <button type='submit' className='submit-btn'>
+          { isEditing ? 'edit' : 'add' }
+        </button>
+      </form>
+      {list.length >0 && (
+        <div className='grocery-container'>
+         <List items={list} removeItem={removeItem} editItem={editItem}/>
+         <button className='clear-btn' onClick={clearList}>clear items</button>
         </div>
-
-        <div className='view-container'>
-          {items.length>0&&<div>
-            <div className='table-responsive'>
-              <table className='table'>
-                <thead>
-                  <tr>
-                    
-                    <th>Title</th>
-                    <th>Price</th>
-                    <th>Delete</th>
-                    <th>Update</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <View items={items} deleteItem={deleteItem} updateItem={updateItem} />
-                </tbody>
-              </table>
-            </div>
-            <button className='btn btn-danger btn-md'
-            onClick={()=>setitems([])}>Remove All</button>
-          </div>}
-          {items.length < 1 && <div>No Items are added yet</div>}
-        </div>
-
-      </div>
-    </div>
-  )
+      )}
+      
+    </section>
+    )
+  ;
 }
 
 export default App
