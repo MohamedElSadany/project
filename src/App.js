@@ -12,8 +12,10 @@ const getLocalStorage = () => {
 
 export const App = () => {
 
-  const [title,setTitle] = useState('');
-  const [price,setPrice] = useState('');
+  //const [title,setTitle] = useState('');
+  //const [price,setPrice] = useState('');
+  const initialValues = { title: "", price: "" };
+  const [formValues, setFormValues] = useState(initialValues);
   const [list,setList] =useState(getLocalStorage());
   const [isEditing,setIsEditing]=useState(false);
   const [editID,setEditID] = useState(null);
@@ -21,24 +23,27 @@ export const App = () => {
   const [formError,setFormError]=useState({});
 
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues({ ...formValues, [name]: value });
+  };
   
   const handleSubmmit = (e) => {
-    let isVaild = validateForm()
     e.preventDefault();
-    if (!(title && price)){
+    let isVaild = validateForm()
+    if (!(formValues.title && formValues.price)){
       // display alert
       showAlert(true,'danger','please enter value');
     }
-    else if((title && price) && isEditing){
+    else if((formValues.title && formValues.price) && isEditing){
       setList(list.map((item)=>{
         if (item.id === editID){
-          return {...item,itemTitle:title,itemPrice:price}
+          return {...item,itemTitle:formValues.title,itemPrice:formValues.price}
         }
         return item
       }))
       if(isVaild){
-      setTitle('');
-      setPrice('');
+      setFormValues({title:'',price:''})
       setEditID(null);
       setIsEditing(false);
       showAlert(true,'success','Item Edited');
@@ -46,13 +51,13 @@ export const App = () => {
       
     }
     else {
-      if (isVaild){
+       if(isVaild){
         showAlert(true,'success','item added to the list');
-        const newItem = {id:new Date().getTime().toString(),itemTitle:title,itemPrice:price};
+        const newItem = {id:new Date().getTime().toString(),itemTitle:formValues.title,itemPrice:formValues.price};
         setList([...list,newItem]);
-        setTitle('');
-        setPrice('');
-      }
+        setFormValues({title:'',price:''})
+
+       }
       
     }
   }
@@ -76,8 +81,9 @@ export const App = () => {
     const specificItem = list.find((item) => item.id === id);
     setIsEditing(true);
     setEditID(id);
-    setTitle(specificItem.itemTitle);
-    setPrice(specificItem.itemPrice);
+    setFormValues({title:specificItem.itemTitle,price:specificItem.itemPrice})
+
+
   }
 
   useEffect(() => {
@@ -89,14 +95,14 @@ export const App = () => {
   
   const validateForm = () => {
     let formError={};
-    if(title.length < 3  ){
+    if(formValues.title.length < 3  ){
       formError.title = "title is shouid be gratter than 3 character and unique"
     }
-    if(price < 1){
+    if(formValues.price < 1){
       formError.price = "price is shouid be gratter than 1";
-      setPrice(1);
+      setFormValues({price:1})
     }
-    if(localStorage.getItem('list').includes(title)  ){
+    if(localStorage.getItem('list').includes(formValues.title)  ){
       formError.title = "title is shouid be gratter than 3 character and unique"
     }
     
@@ -117,13 +123,13 @@ export const App = () => {
           onSubmit={handleSubmmit}>
           {alert.show && <Alert {...alert} removeAlert={showAlert} list={list}/>}
             <label htmlFor='title'>Title</label>
-            <input type="text" id='title' className='form-control'  
-            onChange={(e)=>setTitle(e.target.value)} value={title} label="Outlined" variant="outlined" />
-            <small className=" alert-danger"> {formError.title}</small>
+            <input name='title' type="text" id='title' className='form-control'  
+            onChange={handleChange} value={formValues.title} label="Outlined" variant="outlined" />
+            <small className="alert-danger">{formError.title}</small>
             <br></br>
             <label htmlFor='price'>Price</label>
-            <input type="number" id='price' className='form-control' 
-            onChange={(e)=>setPrice(e.target.value)} value={price}   />
+            <input name='price' type="number" id='price' className='form-control' 
+            onChange={handleChange} value={formValues.price}   />
             <small className="alert-danger">{formError.price}</small>
             <br></br>
             {
