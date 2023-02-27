@@ -90,15 +90,14 @@ export const App = () => {
   const validateForm = () => {
     let formError={};
     if(title.length < 3  ){
-      formError.title = "title is shouid be gratter than 3 character"
+      formError.title = "title is shouid be gratter than 3 character and unique"
     }
     if(price < 1){
       formError.price = "price is shouid be gratter than 1";
       setPrice(1);
     }
     if(localStorage.getItem('list').includes(title)  ){
-      formError.title = "title is shouid be unique"
-      localStorage.removeItem('title')
+      formError.title = "title is shouid be gratter than 3 character and unique"
     }
     
 
