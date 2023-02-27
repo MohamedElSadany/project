@@ -88,19 +88,23 @@ export const App = () => {
   
   
   const validateForm = () => {
-    let err={};
+    let formError={};
     if(title.length < 3  ){
-      err.title = "title is shouid be gratter than 3 character"
+      formError.title = "title is shouid be gratter than 3 character"
     }
     if(price < 1){
-      err.price = "price is shouid be gratter than 1";
+      formError.price = "price is shouid be gratter than 1";
       setPrice(1);
+    }
+    if(localStorage.getItem('list').includes(title)  ){
+      formError.title = "title is shouid be unique"
+      localStorage.removeItem('title')
     }
     
 
-    setFormError({...err});
+    setFormError({...formError});
     
-    return Object.keys(err).length < 1;
+    return Object.keys(formError).length < 1;
   }
 
   return (
@@ -116,7 +120,7 @@ export const App = () => {
             <label htmlFor='title'>Title</label>
             <input type="text" id='title' className='form-control'  
             onChange={(e)=>setTitle(e.target.value)} value={title} label="Outlined" variant="outlined" />
-            <small className="alert-danger"> {formError.title}</small>
+            <small className=" alert-danger"> {formError.title}</small>
             <br></br>
             <label htmlFor='price'>Price</label>
             <input type="number" id='price' className='form-control' 
